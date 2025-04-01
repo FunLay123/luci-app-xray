@@ -36,7 +36,7 @@ jobs:
         run: echo "::set-output name=timestamp::$(date +"%s")"
 
       - name: Setup Cache
-        uses: actions/cache@v4  # Обновлено с v2 на v4
+        uses: actions/cache@v4
         with:
           path: |
             ${{ env.CACHE_DIR }}
@@ -47,7 +47,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ccache gettext libncurses5-dev xsltproc p7zip-full
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ccache gettext libncurses5-dev xsltproc p7zip-full zstd  # Добавлен zstd
 
       - name: Create Directories
         run: |
@@ -82,7 +82,8 @@ jobs:
           fi
           cd -
           file "$CACHE_DIR_SDK/$SDK_FILE"
-          7z x "$CACHE_DIR_SDK/$SDK_FILE" -so | tar -C "$SDK_HOME" -xvf - --strip=1
+          zstd -d "$CACHE_DIR_SDK/$SDK_FILE" -o "$CACHE_DIR_SDK/sdk.tar"  # Распаковка .zst
+          tar -C "$SDK_HOME" -xvf "$CACHE_DIR_SDK/sdk.tar" --strip=1     # Распаковка .tar
           cd "$SDK_HOME"
           test -d "dl" && rm -rf "dl" || true
           test -d "feeds" && rm -rf "feeds" || true
